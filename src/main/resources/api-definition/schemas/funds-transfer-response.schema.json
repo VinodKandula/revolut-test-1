@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "javaInterfaces": [
+    "java.io.Serializable"
+  ],
+  "javaType": "com.revolut.challenge.api.model.TransferResponse",
+  "type": "object",
+  "title": "Funds transfer response schema",
+  "required": [
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "javaType": "com.revolut.challenge.api.model.TransferStatus",
+      "type": "string",
+      "enum": [
+        "OK",
+        "REJECTED"
+      ]
+    },
+    "transferNumber": {
+      "type": "string"
+    }
+  }
+}

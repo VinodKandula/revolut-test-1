@@ -1,0 +1,143 @@
+buildscript {
+    ext.repos = {
+        mavenCentral()
+        maven { url "https://jcenter.bintray.com" }
+    }
+
+    repositories repos
+
+    dependencies {
+        classpath("org.jsonschema2pojo:jsonschema2pojo-gradle-plugin:1.0.1")
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.jetbrains.gradle.plugin.idea-ext' version '0.5'
+    id 'jacoco'
+    id("com.github.johnrengelman.shadow") version "5.1.0"
+}
+
+apply plugin: 'idea'
+apply plugin: 'jsonschema2pojo'
+
+group = 'com.revolut'
+version = '0.0.1'
+sourceCompatibility = '11'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.revolut.challenge.AccountFundsApplication'
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+// re-use the repositories defined in the buildscript section for the actual build
+repositories repos
+
+dependencies {
+    //micronaut
+    annotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
+    annotationProcessor "io.micronaut:micronaut-inject-java"
+    annotationProcessor "io.micronaut:micronaut-validation"
+    annotationProcessor "io.micronaut.configuration:micronaut-openapi"
+    implementation platform("io.micronaut:micronaut-bom:$micronautVersion")
+    implementation "io.micronaut:micronaut-inject"
+    implementation "io.micronaut:micronaut-validation"
+    implementation "io.micronaut:micronaut-runtime"
+    implementation "io.micronaut:micronaut-http-server-netty"
+
+    //lombok
+    implementation "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    //junit
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+}
+
+shadowJar {
+    mergeServiceFiles()
+}
+
+idea.project.settings {
+    taskTriggers {
+        afterSync generateJsonSchema2Pojo
+    }
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+    jacoco {
+        destinationFile = file("$buildDir/jacoco/test.exec")
+    }
+}
+
+task integrationTest(type: Test) {
+    maxParallelForks = 1
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Runs internal integration tests."
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    jacoco {
+        destinationFile = file("$buildDir/jacoco/integrationTest.exec")
+    }
+}
+
+jacocoTestReport {
+    classDirectories = files("$buildDir/classes/java/main/com/revolut/challenge")
+    executionData = files("$buildDir/jacoco/test.exec", "build/jacoco/integrationTest.exec")
+    reports {
+        xml.enabled false
+        csv.enabled true
+        html.enabled true
+    }
+}
+
+jacocoTestCoverageVerification {
+    classDirectories = files("$buildDir/classes/java/main/com/revolut/challenge")
+    executionData = files("$buildDir/jacoco/test.exec", "$buildDir/jacoco/integrationTest.exec")
+    violationRules {
+        failOnViolation = true
+        rule {
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+        }
+
+        rule {
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+        }
+    }
+}
+
+jsonSchema2Pojo {
+    includeJsr303Annotations = true
+    source = files("$rootDir/src/main/resources/api-definition/schemas")
+    targetPackage = "com.revolut.challenge.model"
+    dateType = "java.time.LocalDate"
+    dateTimeType = "java.time.ZonedDateTime"
+    generateBuilders = true
+    includeSetters = false
+    useInnerClassBuilders = true
+    includeAdditionalProperties = false
+    initializeCollections = true
+    inclusionLevel = "ALWAYS"
+    useBigDecimals = true
+}

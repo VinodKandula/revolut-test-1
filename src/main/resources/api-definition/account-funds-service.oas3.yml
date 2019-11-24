@@ -1,0 +1,44 @@
+openapi: 3.0.0
+info:
+  title: The API of the faccount funds application
+  version: 1.0.0
+paths:
+  /api/v1/transfers:
+    post:
+      description: Add a transfer from one account to another
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: ./schemas/funds-transfer-request.schema.json
+            example: |
+              {
+              	"operationId": "b19d837f-2b85-4ec6-8c57-3a83cae34139 ",
+              	"accounts": {
+              		"from": {
+              			"id": "48e3d142-e5d6-442a-bf61-42c3e5673700"
+              		},
+              		"to": {
+              			"id": "a27fa283-f638-49d1-b150-8adf065c80e2"
+              		}
+              	},
+              	"amount": {
+              		"value": "90.05",
+              		"currrency": "EUR"
+              	},
+              	"message": "Test transfer"
+              }
+      responses:
+        200:
+          description: Successful transfer response
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: ./schemas/funds-transfer-response.schema.json
+              example: |
+                {
+                  "status": "OK",
+                  "transferNumber": "42"
+                }

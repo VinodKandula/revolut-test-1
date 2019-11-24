@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "javaInterfaces": [
+    "java.io.Serializable"
+  ],
+  "javaType": "com.revolut.challenge.api.model.TransferRequest",
+  "type": "object",
+  "title": "Funds transfer request schema",
+  "required": [
+    "operationId",
+    "accounts",
+    "amount",
+    "message"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "operationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "accounts" : {
+      "javaType": "com.revolut.challenge.api.model.TransferAccounts",
+      "type": "object",
+      "required": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "$ref": "#/definitions/account"
+        },
+        "to": {
+          "$ref": "#/definitions/account"
+        }
+      }
+    },
+    "amount": {
+      "javaType": "com.revolut.challenge.api.model.TransferAmount",
+      "type": "object",
+      "required": [
+        "value",
+        "currency"
+      ],
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        }
+      }
+    },
+    "message": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "account": {
+      "javaType": "com.revolut.challenge.api.model.TransferAccount",
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    }
+  }
+}
