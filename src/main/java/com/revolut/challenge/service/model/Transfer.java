@@ -19,7 +19,7 @@ public class Transfer {
 
     @Id
     @GeneratedValue
-    private final Integer id;
+    private final Long id;
     @NotNull
     private final UUID operationId;
     @Size(min = 3, max = 3)

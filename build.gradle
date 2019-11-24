@@ -41,6 +41,11 @@ configurations {
 repositories repos
 
 dependencies {
+    //lombok
+    implementation "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
     //micronaut
     annotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
     annotationProcessor "io.micronaut:micronaut-inject-java"
@@ -58,11 +63,6 @@ dependencies {
 
     //H2
     runtime 'com.h2database:h2'
-
-    //lombok
-    implementation "org.projectlombok:lombok:$lombokVersion"
-    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
-    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     //junit
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
