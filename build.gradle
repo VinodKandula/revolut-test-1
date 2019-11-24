@@ -64,6 +64,9 @@ dependencies {
     //H2
     runtime 'com.h2database:h2'
 
+    //logging
+    runtime "ch.qos.logback:logback-classic:1.2.3"
+
     //junit
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
