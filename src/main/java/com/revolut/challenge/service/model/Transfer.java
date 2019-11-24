@@ -34,4 +34,25 @@ public class Transfer {
     private final LocalDateTime createdAt;
     @NotNull
     private final TransferStatus status;
+
+    //non-Lombok constructor is used because Lombok assigns arg names that Micronaut Data rejects
+    public Transfer(
+        Long id,
+        UUID operationId,
+        String currency,
+        BigDecimal amount,
+        UUID senderAccountId,
+        UUID recipientAccountId,
+        LocalDateTime createdAt,
+        TransferStatus status
+    ) {
+        this.id = id;
+        this.operationId = operationId;
+        this.currency = currency;
+        this.amount = amount;
+        this.senderAccountId = senderAccountId;
+        this.recipientAccountId = recipientAccountId;
+        this.createdAt = createdAt;
+        this.status = status;
+    }
 }

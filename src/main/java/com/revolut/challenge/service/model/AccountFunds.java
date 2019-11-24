@@ -23,4 +23,15 @@ public class AccountFunds {
     @NotNull
     @Size(min = 3, max = 3)
     private final String currency;
+
+    //non-Lombok constructor is used because Lombok assigns arg names that Micronaut Data rejects
+    public AccountFunds(
+        UUID accountId,
+        BigDecimal balance,
+        String currency
+    ) {
+        this.accountId = accountId;
+        this.balance = balance;
+        this.currency = currency;
+    }
 }
