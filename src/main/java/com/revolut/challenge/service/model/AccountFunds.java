@@ -1,6 +1,5 @@
 package com.revolut.challenge.service.model;
 
-import io.micronaut.data.annotation.AutoPopulated;
 import io.micronaut.data.annotation.Id;
 import io.micronaut.data.annotation.MappedEntity;
 import java.math.BigDecimal;
@@ -16,7 +15,6 @@ import lombok.Data;
 public class AccountFunds {
 
     @Id
-    @AutoPopulated
     private final UUID accountId;
     @NotNull
     private final BigDecimal balance;

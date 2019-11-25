@@ -1,4 +1,4 @@
-package com.revolut.challenge.service;
+package com.revolut.challenge.repositories;
 
 import com.revolut.challenge.service.model.Transfer;
 import io.micronaut.data.jdbc.annotation.JdbcRepository;
