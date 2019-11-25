@@ -79,7 +79,7 @@ curl --request POST \
 	},
 	"amount": {
 		"value": "90.05",
-		"currrency": "EUR"
+		"currency": "EUR"
 	},
 	"message": "Test transfer"
 }'

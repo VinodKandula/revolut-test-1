@@ -10,10 +10,10 @@ import javax.inject.Singleton;
 import javax.validation.Valid;
 
 @Singleton
+@Validated
 public class TransferConverter {
 
     @NonNull
-    @Validated
     public Transfer fromCreateRequest(@NonNull @Valid TransferRequest transferRequest) {
         return Transfer.builder()
             .operationId(transferRequest.getOperationId())
@@ -26,7 +26,6 @@ public class TransferConverter {
     }
 
     @NonNull
-    @Validated
     public TransferResponse toTransferResponse(@NonNull @Valid Transfer transfer) {
         return new TransferResponse.TransferResponseBuilder<>()
             .withCreatedAt(transfer.getCreatedAt())
