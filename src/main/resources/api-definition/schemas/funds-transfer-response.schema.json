@@ -1,17 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Funds transfer response schema",
+  "description": "The response to the transfer request",
   "javaInterfaces": [
     "java.io.Serializable"
   ],
   "javaType": "com.revolut.challenge.api.model.TransferResponse",
   "type": "object",
-  "title": "Funds transfer response schema",
   "required": [
     "status"
   ],
   "additionalProperties": false,
   "properties": {
     "status": {
+      "description": "The status of the transaction",
       "javaType": "com.revolut.challenge.api.model.TransferStatus",
       "type": "string",
       "enum": [
@@ -20,7 +22,13 @@
       ]
     },
     "transferNumber": {
+      "description": "internal unique ID of the transaction",
       "type": "string"
+    },
+    "createdAt": {
+      "description": "the timestamp of transfer creation in UTC timezone",
+      "type": "string",
+      "format": "date-time"
     }
   }
 }

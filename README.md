@@ -9,6 +9,8 @@ This project follows API-first approach:
 
 - Account identification (such as by email or by IBAN etc.) is performed by the client of the API. 
   This API only accepts the IDs of the accounts
+- The service uses its own database. Additional details, such as account owner, type of account (is
+  it a private or business account) etc. are supposed to be stored in other services
 - The service's scope is limited to transferring from one account to another within the same service.
   External transfers are done in a separate service that integrates with a payment system such as SWIFT.
 - The API is a generic transfer API that can operate on any accounts in the bank.
@@ -20,6 +22,7 @@ This project follows API-first approach:
 - The service implementation will use an embedded database and thus in its current shape it will not 
   be able to scale horizontally without using a database shared between instances. Nevertheless,
   this implementation will ensure correctness in the presence of concurrent request as much as possible.
+- No currency conversion is performed. Both accounts must use the same currency.
 
 ## Chosen technologies
 
