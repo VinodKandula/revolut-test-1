@@ -19,7 +19,7 @@ public class Transfer {
 
     @Id
     @GeneratedValue
-    private final Long id;
+    private Long id; //has to be non-final because of how Micronaut Data works
     @NotNull
     private final UUID operationId;
     @Size(min = 3, max = 3)
@@ -31,11 +31,11 @@ public class Transfer {
     @NotNull
     private final UUID recipientAccountId;
     @DateCreated
-    private final LocalDateTime createdAt;
+    private LocalDateTime createdAt; //has to be non-final because of how Micronaut Data works
     @NotNull
     private final TransferStatus status;
 
-    //non-Lombok constructor is used because Lombok assigns arg names that Micronaut Data rejects
+    //non-Lombok public constructor is used because Lombok assigns arg names that Micronaut Data rejects
     public Transfer(
         Long id,
         UUID operationId,

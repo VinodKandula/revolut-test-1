@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 
 @Builder(toBuilder = true)
 @Data
@@ -15,6 +16,7 @@ import lombok.Data;
 public class AccountFunds {
 
     @Id
+    @NonNull
     private final UUID accountId;
     @NotNull
     private final BigDecimal balance;
@@ -22,7 +24,7 @@ public class AccountFunds {
     @Size(min = 3, max = 3)
     private final String currency;
 
-    //non-Lombok constructor is used because Lombok assigns arg names that Micronaut Data rejects
+    //non-Lombok public constructor is used because Lombok assigns arg names that Micronaut Data rejects
     public AccountFunds(
         UUID accountId,
         BigDecimal balance,
