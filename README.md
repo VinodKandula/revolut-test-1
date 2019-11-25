@@ -39,7 +39,7 @@ Gradle `5.X.X` and `JDK 11`
 ## Building the executable Jar file
 
 ```bash
-./gradlew clean shadowJar
+./gradlew --full-stacktrace --info clean test integrationTest shadowJar
 ```
 
 ## Running the executable Jar
