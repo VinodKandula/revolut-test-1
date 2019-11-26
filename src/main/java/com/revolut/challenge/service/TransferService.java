@@ -65,10 +65,9 @@ public class TransferService {
                 senderAccount.getAccountId(),
                 recipientAccount.getAccountId(),
                 transfer.getAmount());
-        return transferRepository.update(
-            transfer.toBuilder()
-                .status(TransferStatus.OK)
-                .build()
-        );
+        transferRepository.update(transfer.getId(), TransferStatus.OK);
+        return transfer.toBuilder() //TODO: better get from repo
+            .status(TransferStatus.OK)
+            .build();
     }
 }
