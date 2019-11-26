@@ -5,6 +5,8 @@ import com.revolut.challenge.repositories.TransferRepository;
 import com.revolut.challenge.service.model.AccountFunds;
 import com.revolut.challenge.service.model.Transfer;
 import com.revolut.challenge.service.model.TransferStatus;
+import io.micronaut.data.exceptions.DataAccessException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Objects;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
@@ -24,8 +26,6 @@ public class TransferService {
     }
 
     public Transfer processTransfer(Transfer transfer) {
-        Iterable<AccountFunds> accounts = accountFundsRepository.findAll();
-
         var senderAccount = accountFundsRepository
             .findById(transfer.getSenderAccountId()).orElseThrow(); //TODO: throw correct exception
         var recipientAccount = accountFundsRepository
@@ -35,11 +35,22 @@ public class TransferService {
             !Objects.equals(transfer.getCurrency(), recipientAccount.getCurrency())) {
             return null; //TODO: throw correct exception
         }
-
-        var persistedTransfer = transferRepository.save( //TODO: correctly handle idempotency
-            transfer.toBuilder()
-                .status(TransferStatus.ACCEPTED)
-                .build());
+        Transfer persistedTransfer;
+        try {
+            persistedTransfer = transferRepository.save(
+                transfer.toBuilder()
+                    .status(TransferStatus.ACCEPTED)
+                    .build());
+        } catch (DataAccessException e) {
+            if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
+                return transferRepository.findByOperationId(transfer.getOperationId())
+                    .orElseThrow(() -> new IllegalStateException(
+                        "The original transfer with ID " + transfer.getOperationId()
+                            + " was not found"));
+            } else {
+                throw e;
+            }
+        }
         return transferFunds(senderAccount, recipientAccount, persistedTransfer);
     }
 
