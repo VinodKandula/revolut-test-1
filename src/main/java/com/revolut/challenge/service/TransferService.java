@@ -34,10 +34,7 @@ public class TransferService {
     public Transfer processTransfer(Transfer transfer) {
         var senderAccount = getAccountFunds(transfer.getSenderAccountId());
         var recipientAccount = getAccountFunds(transfer.getRecipientAccountId());
-        if (!Objects.equals(transfer.getCurrency(), senderAccount.getCurrency()) ||
-            !Objects.equals(transfer.getCurrency(), recipientAccount.getCurrency())) {
-            throw new IllegalArgumentException("Wrong currency"); //TODO: throw correct exception
-        }
+        validateCurrency(transfer, senderAccount, recipientAccount);
         Transfer persistedTransfer;
         try {
             persistedTransfer = transferRepository.save(
@@ -55,6 +52,19 @@ public class TransferService {
             }
         }
         return transferFunds(senderAccount, recipientAccount, persistedTransfer);
+    }
+
+    private static void validateCurrency(Transfer transfer, AccountFunds senderAccount,
+        AccountFunds recipientAccount) {
+        validateCurrency(transfer, senderAccount);
+        validateCurrency(transfer, recipientAccount);
+    }
+
+    private static void validateCurrency(Transfer transfer, AccountFunds senderAccount) {
+        if (!Objects.equals(transfer.getCurrency(), senderAccount.getCurrency())) {
+            throw new CurrencyMismatchException(senderAccount.getAccountId(),
+                senderAccount.getCurrency());
+        }
     }
 
     @NonNull

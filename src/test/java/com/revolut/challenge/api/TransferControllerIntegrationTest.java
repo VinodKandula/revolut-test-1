@@ -50,7 +50,7 @@ class TransferControllerIntegrationTest {
         createAccount(senderAccountId, "10.0");
         //AND a 4.81 EUR transfer between them
         var operationId = UUID.randomUUID();
-        TransferRequest transferRequest = buildTransferRequest(recipientAccountId, senderAccountId,
+        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
             operationId, "4.81");
 
         //WHEN the transfer is performed
@@ -79,7 +79,7 @@ class TransferControllerIntegrationTest {
         createAccount(senderAccountId, "10.0");
         //AND a 4.81 EUR transfer between them
         var operationId = UUID.randomUUID();
-        TransferRequest transferRequest = buildTransferRequest(recipientAccountId, senderAccountId,
+        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
             operationId, "4.81");
 
         //WHEN the transfer is performed twice
@@ -100,21 +100,17 @@ class TransferControllerIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("provideAccountIds")
-    void shouldReturnErrorSomeOfAccountsFundsNotFound(
+    void shouldReturnErrorIfAccountFundsNotFound(
         UUID senderAccountId,
         UUID recipientAccountId,
-        Account accountExists
+        UUID existingAccountId
     ) {
         //GIVEN some of the accounts' funds don't exist
-        if (accountExists == Account.SENDER) {
-            createAccount(senderAccountId, "1000.0");
-        } else if (accountExists == Account.RECIPIENT) {
-            createAccount(recipientAccountId, "1000.0");
-        }
+        createAccount(existingAccountId, "1000.0");
 
         //AND a 4.81 EUR transfer between them is attempted
         var operationId = UUID.randomUUID();
-        TransferRequest transferRequest = buildTransferRequest(recipientAccountId, senderAccountId,
+        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
             operationId, "4.81");
 
         //WHEN the transfer is performed
@@ -122,27 +118,56 @@ class TransferControllerIntegrationTest {
 
         //THEN a not found error is returned
         assertThat(result.getStatus().getCode()).isEqualTo(HttpStatus.NOT_FOUND.getCode());
-        //AND the correct account ID is returned in the message
-        //todo fix it, somehow body is null
-//        if (accountExists == Account.RECIPIENT) {
-//            assertThat((String)result.body()).contains(senderAccountId.toString());
-//        } else {
-//            assertThat((String)result.body()).contains(recipientAccountId.toString());
-//        }
+
+        //TODO: check body
     }
 
+    //WHERE
     static Stream<Arguments> provideAccountIds() {
+        var existingRecipientId = UUID.randomUUID();
+        var existingSenderId = UUID.randomUUID();
         return Stream.of(
-            Arguments.arguments(UUID.randomUUID(), UUID.randomUUID(), Account.SENDER),
-            Arguments.arguments(UUID.randomUUID(), UUID.randomUUID(), Account.RECIPIENT),
-            Arguments.arguments(UUID.randomUUID(), UUID.randomUUID(), Account.NONE)
+            Arguments.arguments(UUID.randomUUID(), existingRecipientId, existingRecipientId),
+            Arguments.arguments(existingSenderId, UUID.randomUUID(), existingSenderId),
+            Arguments.arguments(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID())
         );
     }
 
-    private enum Account {
-        SENDER,
-        RECIPIENT,
-        NONE
+    @ParameterizedTest
+    @MethodSource("provideCurrencies")
+    void shouldReturnErrorIfAccountCurrencyMismatches(
+        String senderAccountCurrency,
+        String recipientAccountCurrency
+    ) {
+        //GIVEN some of the accounts' currency doesn't match transaction's currency
+        //GIVEN a recipient account with 0 EURO balance
+        var recipientAccountId = UUID.randomUUID();
+        createAccount(recipientAccountId, recipientAccountCurrency, "0.0");
+        //AND a sender account with 10 EUR balance
+        var senderAccountId = UUID.randomUUID();
+        createAccount(senderAccountId, senderAccountCurrency, "10.0");
+
+        //AND a 4.81 EUR transfer between them is attempted
+        var operationId = UUID.randomUUID();
+        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+            operationId, "4.81");
+
+        //WHEN the transfer is performed
+        var result = failTransfer(transferRequest);
+
+        //THEN a bad request error is returned
+        assertThat(result.getStatus().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.getCode());
+
+        //TODO: check body
+    }
+
+    //WHERE
+    static Stream<Arguments> provideCurrencies() {
+        return Stream.of(
+            Arguments.arguments("EUR", "USD"),
+            Arguments.arguments("USD", "EUR"),
+            Arguments.arguments("USD", "USD")
+        );
     }
 
     private TransferResponse doTransfer(TransferRequest transferRequest) {
@@ -159,7 +184,7 @@ class TransferControllerIntegrationTest {
         }
     }
 
-    private TransferRequest buildTransferRequest(UUID recipientAccountId, UUID senderAccountId,
+    private TransferRequest buildTransferRequest(UUID senderAccountId, UUID recipientAccountId,
         UUID operationId, String amount) {
         return new TransferRequestBuilder()
             .withOperationId(operationId)
@@ -188,10 +213,14 @@ class TransferControllerIntegrationTest {
     }
 
     private void createAccount(UUID accountId, String balance) {
+        createAccount(accountId, "EUR", balance);
+    }
+
+    private void createAccount(UUID accountId, String currency, String balance) {
         var accountFunds = AccountFunds.builder()
             .accountId(accountId)
             .balance(new BigDecimal(balance))
-            .currency("EUR")
+            .currency(currency)
             .build();
         client.toBlocking().exchange(HttpRequest.POST("/account-funds", accountFunds));
     }

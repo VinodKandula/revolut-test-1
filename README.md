@@ -28,7 +28,7 @@ This project follows API-first approach:
 
 - Programming language: Java 11
 - Build tool: Gradle 5
-- Web framework: Micronaut
+- Web framework: Micronaut (+ Micronaut Data JDBC)
 - Test framework: JUnit 5
 
 
