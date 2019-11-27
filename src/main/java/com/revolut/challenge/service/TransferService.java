@@ -5,12 +5,16 @@ import com.revolut.challenge.repositories.TransferRepository;
 import com.revolut.challenge.service.model.AccountFunds;
 import com.revolut.challenge.service.model.Transfer;
 import com.revolut.challenge.service.model.TransferStatus;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import io.micronaut.data.exceptions.DataAccessException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Objects;
+import java.util.UUID;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.inject.Singleton;
 
 @Singleton
+@ParametersAreNonnullByDefault
 public class TransferService {
 
     private final AccountFundsRepository accountFundsRepository;
@@ -26,15 +30,13 @@ public class TransferService {
         this.transactionHelper = transactionHelper;
     }
 
+    @NonNull
     public Transfer processTransfer(Transfer transfer) {
-        var senderAccount = accountFundsRepository
-            .findById(transfer.getSenderAccountId()).orElseThrow(); //TODO: throw correct exception
-        var recipientAccount = accountFundsRepository
-            .findById(transfer.getRecipientAccountId())
-            .orElseThrow(); //TODO: throw correct exception
+        var senderAccount = getAccountFunds(transfer.getSenderAccountId());
+        var recipientAccount = getAccountFunds(transfer.getRecipientAccountId());
         if (!Objects.equals(transfer.getCurrency(), senderAccount.getCurrency()) ||
             !Objects.equals(transfer.getCurrency(), recipientAccount.getCurrency())) {
-            return null; //TODO: throw correct exception
+            throw new IllegalArgumentException("Wrong currency"); //TODO: throw correct exception
         }
         Transfer persistedTransfer;
         try {
@@ -55,6 +57,14 @@ public class TransferService {
         return transferFunds(senderAccount, recipientAccount, persistedTransfer);
     }
 
+    @NonNull
+    private AccountFunds getAccountFunds(UUID accountId) {
+        return accountFundsRepository
+            .findById(accountId)
+            .orElseThrow(() -> new AccountFundsNotFoundException(accountId));
+    }
+
+    @NonNull
     private Transfer transferFunds(
         AccountFunds senderAccount,
         AccountFunds recipientAccount,

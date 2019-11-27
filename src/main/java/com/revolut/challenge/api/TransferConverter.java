@@ -2,6 +2,7 @@ package com.revolut.challenge.api;
 
 import com.revolut.challenge.api.model.TransferRequest;
 import com.revolut.challenge.api.model.TransferResponse;
+import com.revolut.challenge.api.model.TransferResponse.TransferResponseBuilder;
 import com.revolut.challenge.service.model.Transfer;
 import com.revolut.challenge.service.model.TransferStatus;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -27,7 +28,7 @@ public class TransferConverter {
 
     @NonNull
     public TransferResponse toTransferResponse(@NonNull @Valid Transfer transfer) {
-        return new TransferResponse.TransferResponseBuilder<>()
+        return new TransferResponseBuilder<>()
             .withCreatedAt(transfer.getCreatedAt())
             .withTransferNumber(Long.toString(transfer.getId()))
             .withStatus(com.revolut.challenge.api.model.TransferStatus

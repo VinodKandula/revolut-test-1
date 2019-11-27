@@ -3,10 +3,10 @@ package com.revolut.challenge.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import com.revolut.challenge.api.model.TransferAccount;
-import com.revolut.challenge.api.model.TransferAccounts;
-import com.revolut.challenge.api.model.TransferAmount;
-import com.revolut.challenge.api.model.TransferRequest;
+import com.revolut.challenge.api.model.TransferAccount.TransferAccountBuilder;
+import com.revolut.challenge.api.model.TransferAccounts.TransferAccountsBuilder;
+import com.revolut.challenge.api.model.TransferAmount.TransferAmountBuilder;
+import com.revolut.challenge.api.model.TransferRequest.TransferRequestBuilder;
 import com.revolut.challenge.api.model.TransferResponse.TransferResponseBuilder;
 import com.revolut.challenge.service.model.Transfer;
 import com.revolut.challenge.service.model.TransferStatus;
@@ -31,18 +31,18 @@ class TransferConverterTest {
         var operationId = UUID.randomUUID();
         var recipientAccountId = UUID.randomUUID();
         var senderAccountId = UUID.randomUUID();
-        var transferRequest = new TransferRequest.TransferRequestBuilder()
+        var transferRequest = new TransferRequestBuilder()
             .withOperationId(operationId)
-            .withAccounts(new TransferAccounts.TransferAccountsBuilder()
-                .withFrom(new TransferAccount.TransferAccountBuilder()
+            .withAccounts(new TransferAccountsBuilder()
+                .withFrom(new TransferAccountBuilder()
                     .withId(senderAccountId)
                     .build())
-                .withTo(new TransferAccount.TransferAccountBuilder()
+                .withTo(new TransferAccountBuilder()
                     .withId(recipientAccountId)
                     .build())
                 .build()
             )
-            .withAmount(new TransferAmount.TransferAmountBuilder()
+            .withAmount(new TransferAmountBuilder()
                 .withCurrency("EUR")
                 .withValue(new BigDecimal("42.23"))
                 .build())

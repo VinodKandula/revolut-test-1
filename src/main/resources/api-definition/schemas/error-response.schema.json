@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Error response schema",
+  "description": "The response is some error happened",
+  "javaInterfaces": [
+    "java.io.Serializable"
+  ],
+  "javaType": "com.revolut.challenge.api.model.ErrorResponse",
+  "type": "object",
+  "required": [
+    "message"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "message": {
+      "description": "The error message",
+      "type": "string"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 package com.revolut.challenge.api;
 
 import com.revolut.challenge.repositories.AccountFundsRepository;
+import com.revolut.challenge.service.AccountFundsNotFoundException;
 import com.revolut.challenge.service.model.AccountFunds;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
@@ -9,7 +10,6 @@ import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.RequestAttribute;
 import io.micronaut.validation.Validated;
-import io.reactivex.Single;
 import java.util.UUID;
 import javax.validation.Valid;
 
@@ -25,14 +25,14 @@ public class AccountFundsController { //TODO: a controller for tests. replace wi
     private final AccountFundsRepository accountFundsRepository;
 
     @Post(consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
-    public Single<AccountFunds> createAccountFunds(@Valid @Body AccountFunds accountFunds) {
-        accountFundsRepository.save(accountFunds);
-        return Single.just(accountFunds);
+    public AccountFunds createAccountFunds(@Valid @Body AccountFunds accountFunds) {
+        return accountFundsRepository.save(accountFunds);
     }
 
     @Get(value = "/{accountId}", produces = MediaType.APPLICATION_JSON)
-    public Single<AccountFunds> getAccountFunds(@Valid @RequestAttribute UUID accountId) {
-        return Single.just(accountFundsRepository.findById(accountId).orElseThrow());
+    public AccountFunds getAccountFunds(@Valid @RequestAttribute UUID accountId) {
+        return accountFundsRepository.findById(accountId)
+            .orElseThrow(() -> new AccountFundsNotFoundException(accountId));
     }
 
 }
