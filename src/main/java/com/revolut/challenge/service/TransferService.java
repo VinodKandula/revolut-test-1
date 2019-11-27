@@ -9,20 +9,21 @@ import io.micronaut.data.exceptions.DataAccessException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Objects;
 import javax.inject.Singleton;
-import javax.transaction.Transactional;
 
 @Singleton
 public class TransferService {
 
     private final AccountFundsRepository accountFundsRepository;
     private final TransferRepository transferRepository;
+    private final TransactionHelper transactionHelper;
 
     public TransferService(
         AccountFundsRepository accountFundsRepository,
-        TransferRepository transferRepository
-    ) {
+        TransferRepository transferRepository,
+        TransactionHelper transactionHelper) {
         this.accountFundsRepository = accountFundsRepository;
         this.transferRepository = transferRepository;
+        this.transactionHelper = transactionHelper;
     }
 
     public Transfer processTransfer(Transfer transfer) {
@@ -54,18 +55,21 @@ public class TransferService {
         return transferFunds(senderAccount, recipientAccount, persistedTransfer);
     }
 
-    @Transactional
     private Transfer transferFunds(
         AccountFunds senderAccount,
         AccountFunds recipientAccount,
         Transfer transfer
     ) {
-        accountFundsRepository
-            .transferFunds(
-                senderAccount.getAccountId(),
-                recipientAccount.getAccountId(),
-                transfer.getAmount());
-        transferRepository.update(transfer.getId(), TransferStatus.OK);
+        //a helper is used to avoid the hack of exposing this private method for @Transactional to work
+        transactionHelper.runInTransaction(() -> {
+            accountFundsRepository
+                .transferFunds(
+                    senderAccount.getAccountId(),
+                    recipientAccount.getAccountId(),
+                    transfer.getAmount());
+            transferRepository.update(transfer.getId(), TransferStatus.OK);
+            return null;
+        });
         return transfer.toBuilder() //TODO: better get from repo
             .status(TransferStatus.OK)
             .build();
