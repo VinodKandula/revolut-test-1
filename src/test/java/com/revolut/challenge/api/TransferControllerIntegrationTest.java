@@ -100,6 +100,7 @@ class TransferControllerIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("provideAccountIds")
+    @DisplayName("Should return 404 if one or both of account funds entries are not found")
     void shouldReturnErrorIfAccountFundsNotFound(
         UUID senderAccountId,
         UUID recipientAccountId,
@@ -120,6 +121,8 @@ class TransferControllerIntegrationTest {
         assertThat(result.getStatus().getCode()).isEqualTo(HttpStatus.NOT_FOUND.getCode());
 
         //TODO: check body
+        //AND the account balance is unchanged
+        assertAccountBalance(existingAccountId, "1000.0");
     }
 
     //WHERE
@@ -135,6 +138,7 @@ class TransferControllerIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("provideCurrencies")
+    @DisplayName("Should return 400 if one or both of account funds currencies do not match the transfer currency")
     void shouldReturnErrorIfAccountCurrencyMismatches(
         String senderAccountCurrency,
         String recipientAccountCurrency
@@ -159,6 +163,9 @@ class TransferControllerIntegrationTest {
         assertThat(result.getStatus().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.getCode());
 
         //TODO: check body
+        //AND the account balances are unchanged
+        assertAccountBalance(recipientAccountId, "0.0");
+        assertAccountBalance(senderAccountId, "10.0");
     }
 
     //WHERE
