@@ -80,16 +80,22 @@ public class TransferService {
         AccountFunds recipientAccount,
         Transfer transfer
     ) {
-        //a helper is used to avoid the hack of exposing this private method for @Transactional to work
-        transactionHelper.runInTransaction(() -> {
-            accountFundsRepository
-                .transferFunds(
-                    senderAccount.getAccountId(),
-                    recipientAccount.getAccountId(),
-                    transfer.getAmount());
-            transferRepository.update(transfer.getId(), TransferStatus.OK);
-            return null;
-        });
+        try {
+            //a helper is used to avoid the hack of exposing this private method for @Transactional to work
+            transactionHelper.runInTransaction(() -> {
+                accountFundsRepository
+                    .transferFunds(
+                        senderAccount.getAccountId(),
+                        recipientAccount.getAccountId(),
+                        transfer.getAmount());
+                transferRepository.update(transfer.getId(), TransferStatus.OK);
+                return null;
+            });
+        } catch (NotEnoughFundsException e) {
+            return transfer.toBuilder()
+                .status(TransferStatus.REJECTED)
+                .build();
+        }
         return transfer.toBuilder() //TODO: better get from repo
             .status(TransferStatus.OK)
             .build();

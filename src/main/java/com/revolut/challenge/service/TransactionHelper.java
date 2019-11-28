@@ -7,7 +7,7 @@ import javax.transaction.Transactional;
 @Singleton
 class TransactionHelper {
 
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     <T> T runInTransaction(Supplier<T> supplier) {
         return supplier.get();
     }

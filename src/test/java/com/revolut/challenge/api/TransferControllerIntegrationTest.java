@@ -40,7 +40,7 @@ class TransferControllerIntegrationTest {
     private RxHttpClient client;
 
     @Test
-    @DisplayName("Should transfer money between accounts")
+    @DisplayName("Should successfully transfer money between accounts")
     void shouldTransferFundsBetweenAccounts() {
         //GIVEN a recipient account with 0 EURO balance
         var recipientAccountId = UUID.randomUUID();
@@ -144,7 +144,7 @@ class TransferControllerIntegrationTest {
         String recipientAccountCurrency
     ) {
         //GIVEN some of the accounts' currency doesn't match transaction's currency
-        //GIVEN a recipient account with 0 EURO balance
+        //AND a recipient account with 0 EURO balance
         var recipientAccountId = UUID.randomUUID();
         createAccount(recipientAccountId, recipientAccountCurrency, "0.0");
         //AND a sender account with 10 EUR balance
@@ -175,6 +175,35 @@ class TransferControllerIntegrationTest {
             Arguments.arguments("USD", "EUR"),
             Arguments.arguments("USD", "USD")
         );
+    }
+
+    @Test
+    @DisplayName("Should reject the transfer if the sender doesn't have enough accound funds")
+    void shouldRejectedTransferIfSenderDoesntHaveEnoughFunds() {
+        //GIVEN a recipient account with 100 EURO balance
+        var recipientAccountId = UUID.randomUUID();
+        createAccount(recipientAccountId, "100.0");
+        //AND a sender account with 1 EUR balance
+        var senderAccountId = UUID.randomUUID();
+        createAccount(senderAccountId, "1.0");
+        //AND a 4.81 EUR transfer between them
+        var operationId = UUID.randomUUID();
+        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+            operationId, "4.81");
+
+        //WHEN the transfer is performed
+        var result = doTransfer(transferRequest);
+
+        //THEN it should have positive outcome
+        assertThat(result.getStatus()).isEqualTo(TransferStatus.REJECTED);
+        //AND a transfer number should be assigned to it
+        assertThat(result.getTransferNumber()).matches("^\\d+$");
+        //AND the createdAt field should be populated
+        assertThat(result.getCreatedAt()).isBeforeOrEqualTo(LocalDateTime.now());
+        //AND the recipient account still has 100.0 EUR balance
+        assertAccountBalance(recipientAccountId, "100.0");
+        //AND the sender account has 1 EUR balance left
+        assertAccountBalance(senderAccountId, "1.0");
     }
 
     private TransferResponse doTransfer(TransferRequest transferRequest) {
