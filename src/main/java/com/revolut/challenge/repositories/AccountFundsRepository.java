@@ -32,6 +32,24 @@ public abstract class AccountFundsRepository implements CrudRepository<AccountFu
         UUID recipientAccountId,
         BigDecimal amount
     ) {
+        creditTheSenderAccount(senderAccountId, amount);
+        checkIfSenderHasEnoughFunds(senderAccountId);
+        debitTheRecipientAccount(recipientAccountId, amount);
+    }
+
+    private void debitTheRecipientAccount(UUID recipientAccountId, BigDecimal amount) {
+        if (jdbcOperations.prepareStatement(
+            "UPDATE account_funds SET balance = balance + ? WHERE account_id = ?",
+            statement -> {
+                statement.setBigDecimal(1, amount);
+                statement.setString(2, recipientAccountId.toString());
+                return statement.executeUpdate();
+            }) < 1) {
+            throw new AccountFundsNotFoundException(recipientAccountId);
+        }
+    }
+
+    private void creditTheSenderAccount(UUID senderAccountId, BigDecimal amount) {
         if (jdbcOperations.prepareStatement(
             "UPDATE account_funds SET balance = balance - ? WHERE account_id = ?",
             statement -> {
@@ -41,6 +59,9 @@ public abstract class AccountFundsRepository implements CrudRepository<AccountFu
             }) < 1) {
             throw new AccountFundsNotFoundException(senderAccountId);
         }
+    }
+
+    private void checkIfSenderHasEnoughFunds(UUID senderAccountId) {
         ResultSet result = jdbcOperations.prepareStatement(
             "SELECT balance FROM account_funds WHERE account_id = ?",
             statement -> {
@@ -48,21 +69,15 @@ public abstract class AccountFundsRepository implements CrudRepository<AccountFu
                 return statement.executeQuery();
             });
         try {
+            if (result.isLast()) {
+                throw new AccountFundsNotFoundException(senderAccountId);
+            }
             result.next();
             if (BigDecimal.ZERO.compareTo(result.getBigDecimal("balance")) > 0) {
                 throw new NotEnoughFundsException(senderAccountId);
             }
         } catch (SQLException e) {
             throw new IllegalStateException(e);
-        }
-        if (jdbcOperations.prepareStatement(
-            "UPDATE account_funds SET balance = balance + ? WHERE account_id = ?",
-            statement -> {
-                statement.setBigDecimal(1, amount);
-                statement.setString(2, recipientAccountId.toString());
-                return statement.executeUpdate();
-            }) < 1) {
-            throw new AccountFundsNotFoundException(recipientAccountId);
         }
     }
 }

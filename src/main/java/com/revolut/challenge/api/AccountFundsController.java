@@ -10,6 +10,7 @@ import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.RequestAttribute;
 import io.micronaut.validation.Validated;
+import java.math.RoundingMode;
 import java.util.UUID;
 import javax.validation.Valid;
 
@@ -32,6 +33,7 @@ public class AccountFundsController { //TODO: a controller for tests. replace wi
     @Get(value = "/{accountId}", produces = MediaType.APPLICATION_JSON)
     public AccountFunds getAccountFunds(@Valid @RequestAttribute UUID accountId) {
         return accountFundsRepository.findById(accountId)
+            .map(funds -> funds.toBuilder().balance(funds.getBalance().setScale(2)).build())
             .orElseThrow(() -> new AccountFundsNotFoundException(accountId));
     }
 

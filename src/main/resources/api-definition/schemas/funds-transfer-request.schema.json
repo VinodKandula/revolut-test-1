@@ -20,7 +20,7 @@
       "type": "string",
       "format": "uuid"
     },
-    "accounts" : {
+    "accounts": {
       "description": "Accounts participating in the transaction",
       "javaType": "com.revolut.challenge.api.model.TransferAccounts",
       "type": "object",
@@ -52,7 +52,8 @@
         "value": {
           "description": "Non-negative amount of money in the provided currency",
           "type": "number",
-          "minimum": 0.01
+          "minimum": 0.01,
+          "multipleOf": 0.01
         },
         "currency": {
           "description": "The currency used for the transfer. Both accounts must be in that currency",

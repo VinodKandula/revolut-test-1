@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @MicronautTest
 @Tag(INTEGRATION_TAG)
@@ -41,8 +42,8 @@ class TransferControllerIntegrationTest {
 
     @Test
     @DisplayName("Should successfully transfer money between accounts")
-    void shouldTransferFundsBetweenAccounts() {
-        //GIVEN a recipient account with 0 EURO balance
+    void shouldTransferFundsBetweenAccounts() { //TODO provide more amounts
+        //GIVEN a recipient account with 0 EUR balance
         var recipientAccountId = UUID.randomUUID();
         createAccount(recipientAccountId, "0.0");
         //AND a sender account with 10 EUR balance
@@ -71,7 +72,7 @@ class TransferControllerIntegrationTest {
     @Test
     @DisplayName("A duplicate transfer should return the same result as the original one, and should not be processed twice")
     void shouldIdempotentlyHandleDuplicateTransfers() {
-        //GIVEN a recipient account with 0 EURO balance
+        //GIVEN a recipient account with 0 EUR balance
         var recipientAccountId = UUID.randomUUID();
         createAccount(recipientAccountId, "0.0");
         //AND a sender account with 10 EUR balance
@@ -122,7 +123,7 @@ class TransferControllerIntegrationTest {
 
         //TODO: check body
         //AND the account balance is unchanged
-        assertAccountBalance(existingAccountId, "1000.0");
+        assertAccountBalance(existingAccountId, "1000.00");
     }
 
     //WHERE
@@ -144,7 +145,7 @@ class TransferControllerIntegrationTest {
         String recipientAccountCurrency
     ) {
         //GIVEN some of the accounts' currency doesn't match transaction's currency
-        //AND a recipient account with 0 EURO balance
+        //AND a recipient account with 0 EUR balance
         var recipientAccountId = UUID.randomUUID();
         createAccount(recipientAccountId, recipientAccountCurrency, "0.0");
         //AND a sender account with 10 EUR balance
@@ -164,8 +165,40 @@ class TransferControllerIntegrationTest {
 
         //TODO: check body
         //AND the account balances are unchanged
-        assertAccountBalance(recipientAccountId, "0.0");
-        assertAccountBalance(senderAccountId, "10.0");
+        assertAccountBalance(recipientAccountId, "0.00");
+        assertAccountBalance(senderAccountId, "10.00");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"-999.99", "-1.00", "-0.0001", "0.00", "0.0001", "0.001", "0.0099",
+        "9.9999", "9.999", "9"})
+    @DisplayName("Should return 400 if amountValueIsInvalid")
+    void shouldReturnErrorIfAmountValueIsInvalid(
+        String amount
+    ) {
+        //GIVEN some of the accounts' currency doesn't match transaction's currency
+        //AND a recipient account with 0 EUR balance
+        var recipientAccountId = UUID.randomUUID();
+        createAccount(recipientAccountId, "0.0");
+        //AND a sender account with 10 EUR balance
+        var senderAccountId = UUID.randomUUID();
+        createAccount(senderAccountId, "10.0");
+
+        //AND a 4.81 EUR transfer between them is attempted
+        var operationId = UUID.randomUUID();
+        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+            operationId, amount);
+
+        //WHEN the transfer is performed
+        var result = failTransfer(transferRequest);
+
+        //THEN a bad request error is returned
+        assertThat(result.getStatus().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.getCode());
+
+        //TODO: check body
+        //AND the account balances are unchanged
+        assertAccountBalance(recipientAccountId, "0.00");
+        assertAccountBalance(senderAccountId, "10.00");
     }
 
     //WHERE
@@ -180,7 +213,7 @@ class TransferControllerIntegrationTest {
     @Test
     @DisplayName("Should reject the transfer if the sender doesn't have enough accound funds")
     void shouldRejectedTransferIfSenderDoesntHaveEnoughFunds() {
-        //GIVEN a recipient account with 100 EURO balance
+        //GIVEN a recipient account with 100 EUR balance
         var recipientAccountId = UUID.randomUUID();
         createAccount(recipientAccountId, "100.0");
         //AND a sender account with 1 EUR balance
@@ -201,9 +234,9 @@ class TransferControllerIntegrationTest {
         //AND the createdAt field should be populated
         assertThat(result.getCreatedAt()).isBeforeOrEqualTo(LocalDateTime.now());
         //AND the recipient account still has 100.0 EUR balance
-        assertAccountBalance(recipientAccountId, "100.0");
+        assertAccountBalance(recipientAccountId, "100.00");
         //AND the sender account has 1 EUR balance left
-        assertAccountBalance(senderAccountId, "1.0");
+        assertAccountBalance(senderAccountId, "1.00");
     }
 
     private TransferResponse doTransfer(TransferRequest transferRequest) {

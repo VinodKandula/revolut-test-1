@@ -23,6 +23,8 @@ This project follows API-first approach:
   be able to scale horizontally without using a database shared between instances. Nevertheless,
   this implementation will ensure correctness in the presence of concurrent request as much as possible.
 - No currency conversion is performed. Both accounts must use the same currency.
+  If currency conversion is required, it should be done by the client.
+- All API amount values have 2 digits after the decimal point, representing the cents.
 
 ## Chosen technologies
 
