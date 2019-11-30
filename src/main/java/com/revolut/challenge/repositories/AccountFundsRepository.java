@@ -21,10 +21,7 @@ public abstract class AccountFundsRepository implements CrudRepository<AccountFu
         this.jdbcOperations = jdbcOperations;
     }
 
-    @Transactional(rollbackOn = {
-        AccountFundsNotFoundException.class,
-        IllegalStateException.class
-    })
+    @Transactional(rollbackOn = Exception.class)
     public boolean transferFunds(
         UUID senderAccountId,
         UUID recipientAccountId,

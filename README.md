@@ -20,6 +20,8 @@
 - No currency conversion is performed. Both accounts must use the same currency.
   If currency conversion is required, it should be done by the client.
 - All API amount values have 2 digits after the decimal point, representing the cents.
+- The only reason for transfer rejection in this service if the sender account doesn't have
+  enough funds.
 
 ## Chosen technologies
 

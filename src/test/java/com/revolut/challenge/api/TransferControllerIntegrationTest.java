@@ -144,7 +144,7 @@ class TransferControllerIntegrationTest {
         String senderAccountCurrency,
         String recipientAccountCurrency
     ) {
-        //GIVEN some of the accounts' currency doesn't match transaction's currency
+        //GIVEN some of the accounts' currency doesn't match transfer's currency
         //AND a recipient account with 0 EUR balance
         var recipientAccountId = UUID.randomUUID();
         createAccount(recipientAccountId, recipientAccountCurrency, "0.0");
@@ -176,7 +176,7 @@ class TransferControllerIntegrationTest {
     void shouldReturnErrorIfAmountValueIsInvalid(
         String amount
     ) {
-        //GIVEN some of the accounts' currency doesn't match transaction's currency
+        //GIVEN some of the accounts' currency doesn't match transfer's currency
         //AND a recipient account with 0 EUR balance
         var recipientAccountId = UUID.randomUUID();
         createAccount(recipientAccountId, "0.0");

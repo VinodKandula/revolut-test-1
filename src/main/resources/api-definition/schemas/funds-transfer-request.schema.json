@@ -21,7 +21,7 @@
       "format": "uuid"
     },
     "accounts": {
-      "description": "Accounts participating in the transaction",
+      "description": "Accounts participating in the transfer",
       "javaType": "com.revolut.challenge.api.model.TransferAccounts",
       "type": "object",
       "required": [

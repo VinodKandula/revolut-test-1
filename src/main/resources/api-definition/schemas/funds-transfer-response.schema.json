@@ -13,7 +13,7 @@
   "additionalProperties": false,
   "properties": {
     "status": {
-      "description": "The status of the transaction",
+      "description": "The status of the transfer",
       "javaType": "com.revolut.challenge.api.model.TransferStatus",
       "type": "string",
       "enum": [
@@ -22,7 +22,7 @@
       ]
     },
     "transferNumber": {
-      "description": "internal unique ID of the transaction",
+      "description": "internal unique ID of the transfer",
       "type": "string"
     },
     "createdAt": {
