@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.revolut.challenge.service.AccountFundsNotFoundException;
-import com.revolut.challenge.service.NotEnoughFundsException;
 import com.revolut.challenge.service.model.AccountFunds;
 import io.micronaut.test.annotation.MicronautTest;
 import java.math.BigDecimal;
@@ -31,8 +30,9 @@ class AccountFundsRepositoryTest {
     void shouldTransferFunds() {
         createFunds(senderAccountId, "100.0");
         createFunds(recipientAccountId, "0.0");
-        accountFundsRepository
-            .transferFunds(senderAccountId, recipientAccountId, new BigDecimal("100.00"));
+        assertThat(accountFundsRepository
+            .transferFunds(senderAccountId, recipientAccountId, new BigDecimal("100.00"))
+        ).isTrue();
         assertThat(funds(senderAccountId)).isEqualTo("0.0000");
         assertThat(funds(recipientAccountId)).isEqualTo("100.0000");
     }
@@ -63,11 +63,9 @@ class AccountFundsRepositoryTest {
     void shouldNotTransferIfSenderHasInsufficientFunds() {
         createFunds(senderAccountId, "9.99");
         createFunds(recipientAccountId, "0.0");
-        assertThatExceptionOfType(NotEnoughFundsException.class)
-            .isThrownBy(() ->
-                accountFundsRepository
-                    .transferFunds(senderAccountId, recipientAccountId, new BigDecimal("10.0")))
-            .withMessageContaining(senderAccountId.toString());
+        assertThat(accountFundsRepository
+            .transferFunds(senderAccountId, recipientAccountId, new BigDecimal("10.0"))
+        ).isFalse();
         assertThat(funds(senderAccountId)).isEqualTo("9.9900");
         assertThat(funds(recipientAccountId)).isEqualTo("0.0000");
     }

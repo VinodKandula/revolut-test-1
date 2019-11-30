@@ -35,23 +35,17 @@ public class TransferService {
         var senderAccount = getAccountFunds(transfer.getSenderAccountId());
         var recipientAccount = getAccountFunds(transfer.getRecipientAccountId());
         validateCurrency(transfer, senderAccount, recipientAccount);
-        Transfer persistedTransfer;
+        //a helper is used to avoid the hack of exposing that private method for @Transactional to work
         try {
-            persistedTransfer = transferRepository.save(
-                transfer.toBuilder()
-                    .status(TransferStatus.ACCEPTED)
-                    .build());
+            return transactionHelper
+                .runInTransaction(() -> transferFunds(senderAccount, recipientAccount, transfer));
         } catch (DataAccessException e) {
-            if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
-                return transferRepository.findByOperationId(transfer.getOperationId())
-                    .orElseThrow(() -> new IllegalStateException(
-                        "The original transfer with ID " + transfer.getOperationId()
-                            + " was not found"));
+            if (duplicateTransferHappened(e)) {
+                return findProcessedTransfer(transfer);
             } else {
-                throw e;
+                throw new IllegalStateException(e);
             }
         }
-        return transferFunds(senderAccount, recipientAccount, persistedTransfer);
     }
 
     private static void validateCurrency(Transfer transfer, AccountFunds senderAccount,
@@ -67,6 +61,18 @@ public class TransferService {
         }
     }
 
+    private static boolean duplicateTransferHappened(DataAccessException e) {
+        //TODO: make sure it's the INSERT that caused the exception
+        return e.getCause() instanceof SQLIntegrityConstraintViolationException;
+    }
+
+    private Transfer findProcessedTransfer(Transfer transfer) {
+        return transferRepository.findByOperationId(transfer.getOperationId())
+            .orElseThrow(() -> new IllegalStateException(
+                "Transfer with operation ID " + transfer.getOperationId()
+                    + " was not found"));
+    }
+
     @NonNull
     private AccountFunds getAccountFunds(UUID accountId) {
         return accountFundsRepository
@@ -80,24 +86,18 @@ public class TransferService {
         AccountFunds recipientAccount,
         Transfer transfer
     ) {
-        try {
-            //a helper is used to avoid the hack of exposing this private method for @Transactional to work
-            transactionHelper.runInTransaction(() -> {
-                accountFundsRepository
-                    .transferFunds(
-                        senderAccount.getAccountId(),
-                        recipientAccount.getAccountId(),
-                        transfer.getAmount());
-                transferRepository.update(transfer.getId(), TransferStatus.OK);
-                return null;
-            });
-        } catch (NotEnoughFundsException e) {
-            return transfer.toBuilder()
-                .status(TransferStatus.REJECTED)
-                .build();
+        long transferId = transferRepository.save(
+            transfer.toBuilder()
+                .status(TransferStatus.ACCEPTED)
+                .build()).getId();
+        if (accountFundsRepository.transferFunds(senderAccount.getAccountId(),
+            recipientAccount.getAccountId(), transfer.getAmount())) {
+            transferRepository.update(transferId, TransferStatus.OK);
+        } else {
+            transferRepository.update(transferId, TransferStatus.REJECTED);
         }
-        return transfer.toBuilder() //TODO: better get from repo
-            .status(TransferStatus.OK)
-            .build();
+        return transferRepository.findById(transferId).orElseThrow(() -> new IllegalStateException(
+            "Transfer with ID " + transferId
+                + " was not found"));
     }
 }

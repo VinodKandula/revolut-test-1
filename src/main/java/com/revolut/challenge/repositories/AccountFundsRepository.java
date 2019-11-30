@@ -1,7 +1,6 @@
 package com.revolut.challenge.repositories;
 
 import com.revolut.challenge.service.AccountFundsNotFoundException;
-import com.revolut.challenge.service.NotEnoughFundsException;
 import com.revolut.challenge.service.model.AccountFunds;
 import io.micronaut.data.jdbc.annotation.JdbcRepository;
 import io.micronaut.data.jdbc.runtime.JdbcOperations;
@@ -23,18 +22,32 @@ public abstract class AccountFundsRepository implements CrudRepository<AccountFu
     }
 
     @Transactional(rollbackOn = {
-        NotEnoughFundsException.class,
         AccountFundsNotFoundException.class,
         IllegalStateException.class
     })
-    public void transferFunds(
+    public boolean transferFunds(
         UUID senderAccountId,
         UUID recipientAccountId,
         BigDecimal amount
     ) {
+        selectForUpdate(senderAccountId, recipientAccountId);
+        if (!senderHasEnoughFunds(senderAccountId, amount)) {
+            return false;
+        }
         creditTheSenderAccount(senderAccountId, amount);
-        checkIfSenderHasEnoughFunds(senderAccountId);
         debitTheRecipientAccount(recipientAccountId, amount);
+        return true;
+    }
+
+    private void selectForUpdate(UUID senderAccountId, UUID recipientAccountId) {
+        jdbcOperations.prepareStatement(
+            "SELECT account_id FROM account_funds WHERE account_id = ? OR account_id = ? FOR UPDATE",
+            statement -> {
+                statement.setString(1, senderAccountId.toString());
+                statement.setString(2, recipientAccountId.toString());
+                return statement.executeQuery();
+            }
+        );
     }
 
     private void debitTheRecipientAccount(UUID recipientAccountId, BigDecimal amount) {
@@ -61,7 +74,7 @@ public abstract class AccountFundsRepository implements CrudRepository<AccountFu
         }
     }
 
-    private void checkIfSenderHasEnoughFunds(UUID senderAccountId) {
+    private boolean senderHasEnoughFunds(UUID senderAccountId, BigDecimal transferAmount) {
         ResultSet result = jdbcOperations.prepareStatement(
             "SELECT balance FROM account_funds WHERE account_id = ?",
             statement -> {
@@ -69,13 +82,10 @@ public abstract class AccountFundsRepository implements CrudRepository<AccountFu
                 return statement.executeQuery();
             });
         try {
-            if (result.isLast()) {
+            if (!result.next()) {
                 throw new AccountFundsNotFoundException(senderAccountId);
             }
-            result.next();
-            if (BigDecimal.ZERO.compareTo(result.getBigDecimal("balance")) > 0) {
-                throw new NotEnoughFundsException(senderAccountId);
-            }
+            return transferAmount.compareTo(result.getBigDecimal("balance")) <= 0;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }

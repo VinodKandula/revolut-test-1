@@ -1,10 +1,5 @@
 # Revolut Backend Test
 
-This project follows API-first approach:
-- The API if [defined in Open API 3.0 Specification format](./src/main/resources/api-definition/account-funds-service.oas3.yml)
-- the API requests and responses are [defined as a set of JSON schema files](./src/main/resources/api-definition/schemas)
-- `jsonschema2pojo` plugin transforms the JSON schemas into Java classes
-
 ## Assumptions made
 
 - Account identification (such as by email or by IBAN etc.) is performed by the client of the API. 
@@ -32,7 +27,13 @@ This project follows API-first approach:
 - Build tool: Gradle 5
 - Web framework: Micronaut (+ Micronaut Data JDBC)
 - Test framework: JUnit 5
+- In-memory database: H2
 
+## Implementation notes
+- This project follows API-first approach:
+  - The API if [defined in Open API 3.0 Specification format](./src/main/resources/api-definition/account-funds-service.oas3.yml)
+  - the API requests and responses are [defined as a set of JSON schema files](./src/main/resources/api-definition/schemas)
+  - `jsonschema2pojo` plugin transforms the JSON schemas into Java classes
 
 ## Requirements for running the application
 

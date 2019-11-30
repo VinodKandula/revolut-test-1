@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @JdbcRepository(dialect = Dialect.H2)
-public interface TransferRepository extends CrudRepository<Transfer, Integer> {
+public interface TransferRepository extends CrudRepository<Transfer, Long> {
 
     Optional<Transfer> findByOperationId(UUID operationId);
 
