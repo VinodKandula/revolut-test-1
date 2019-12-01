@@ -40,9 +40,10 @@ class TransferControllerIntegrationTest {
     @Client("/api/v1")
     private RxHttpClient client;
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {"0.01", "1.00", "5.90", "9.99", "10.00"})
     @DisplayName("Should successfully transfer money between accounts")
-    void shouldTransferFundsBetweenAccounts() { //TODO provide more amounts
+    void shouldTransferFundsBetweenAccounts(String amount) {
         //GIVEN a recipient account with 0 EUR balance
         var recipientAccountId = UUID.randomUUID();
         createAccount(recipientAccountId, "0.0");
@@ -52,7 +53,7 @@ class TransferControllerIntegrationTest {
         //AND a 4.81 EUR transfer between them
         var operationId = UUID.randomUUID();
         TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
-            operationId, "4.81");
+            operationId, amount);
 
         //WHEN the transfer is performed
         var result = doTransfer(transferRequest);
@@ -63,10 +64,11 @@ class TransferControllerIntegrationTest {
         assertThat(result.getTransferNumber()).matches("^\\d+$");
         //AND the createdAt field should be populated
         assertThat(result.getCreatedAt()).isBeforeOrEqualTo(LocalDateTime.now());
-        //AND the recipient account has 6 4.81 EUR balance
-        assertAccountBalance(recipientAccountId, "4.81");
-        //AND the sender account has 5.19 EUR balance left
-        assertAccountBalance(senderAccountId, "5.19");
+        //AND the recipient account has the balance equal to the amount
+        assertAccountBalance(recipientAccountId, amount);
+        //AND the sender account has 10 - amount EUR left
+        assertAccountBalance(senderAccountId,
+            BigDecimal.TEN.subtract(new BigDecimal(amount)).toPlainString());
     }
 
     @Test
@@ -172,7 +174,7 @@ class TransferControllerIntegrationTest {
     @ParameterizedTest
     @ValueSource(strings = {"-999.99", "-1.00", "-0.0001", "0.00", "0.0001", "0.001", "0.0099",
         "9.9999", "9.999", "9"})
-    @DisplayName("Should return 400 if amountValueIsInvalid")
+    @DisplayName("Should return 400 if transfer amount is invalid")
     void shouldReturnErrorIfAmountValueIsInvalid(
         String amount
     ) {
@@ -268,7 +270,7 @@ class TransferControllerIntegrationTest {
             )
             .withAmount(new TransferAmountBuilder()
                 .withCurrency("EUR")
-                .withValue(new BigDecimal(amount))
+                .withValue(amount)
                 .build())
             .withMessage("test transfer")
             .build();

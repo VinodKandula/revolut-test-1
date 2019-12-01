@@ -50,16 +50,24 @@
       ],
       "properties": {
         "value": {
-          "description": "Non-negative amount of money in the provided currency",
-          "type": "number",
-          "minimum": 0.01,
-          "multipleOf": 0.01
+          "description": "Non-negative amount of money in the provided currency, with cents after the decimal point",
+          "type": "string",
+          "pattern": "^\\d+\\.\\d\\d$",
+          "examples": [
+            "0.01",
+            "1.00",
+            "9.99"
+          ]
         },
         "currency": {
-          "description": "The currency used for the transfer. Both accounts must be in that currency",
+          "description": "The ISO code of currency used for the transfer. Both accounts must be in that currency",
           "type": "string",
           "minLength": 3,
-          "maxLength": 3
+          "maxLength": 3,
+          "examples": [
+            "EUR",
+            "USD"
+          ]
         }
       }
     },

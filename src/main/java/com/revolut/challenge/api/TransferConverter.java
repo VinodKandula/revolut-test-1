@@ -7,6 +7,7 @@ import com.revolut.challenge.service.model.Transfer;
 import com.revolut.challenge.service.model.TransferStatus;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.micronaut.validation.Validated;
+import java.math.BigDecimal;
 import javax.inject.Singleton;
 import javax.validation.Valid;
 
@@ -19,7 +20,7 @@ public class TransferConverter {
         return Transfer.builder()
             .operationId(transferRequest.getOperationId())
             .currency(transferRequest.getAmount().getCurrency().toUpperCase())
-            .amount(transferRequest.getAmount().getValue())
+            .amount(new BigDecimal(transferRequest.getAmount().getValue()))
             .status(TransferStatus.ACCEPTED)
             .senderAccountId(transferRequest.getAccounts().getFrom().getId())
             .recipientAccountId(transferRequest.getAccounts().getTo().getId())

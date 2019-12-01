@@ -1,6 +1,5 @@
 package com.revolut.challenge.api;
 
-import com.revolut.challenge.api.model.TransferAmount;
 import com.revolut.challenge.api.model.TransferRequest;
 import com.revolut.challenge.api.model.TransferResponse;
 import com.revolut.challenge.service.TransferService;
@@ -10,6 +9,7 @@ import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.validation.Validated;
+import java.math.BigDecimal;
 import javax.validation.Valid;
 import javax.validation.ValidationException;
 
@@ -30,16 +30,16 @@ public class TransferController {
 
     @Post(consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
     public TransferResponse transferFunds(@Valid @Body TransferRequest transferRequest) {
-        validateAmountFormat(transferRequest.getAmount());
         var transfer = transferConverter.fromCreateRequest(transferRequest);
+        validateAmount(transfer.getAmount());
         return transferConverter.toTransferResponse(
             transferService.processTransfer(transfer));
     }
 
-    private void validateAmountFormat(@NonNull TransferAmount amount) {
-        if (amount.getValue().scale() == 2) {
+    private void validateAmount(@NonNull BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) > 0) {
             return;
         }
-        throw new ValidationException("Transfer amount must have exactly 2 digits after the decimal point");
+        throw new ValidationException("Transfer amount must exceed 0.00");
     }
 }

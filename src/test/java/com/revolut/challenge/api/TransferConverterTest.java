@@ -44,7 +44,7 @@ class TransferConverterTest {
             )
             .withAmount(new TransferAmountBuilder()
                 .withCurrency("EUR")
-                .withValue(new BigDecimal("42.23"))
+                .withValue("42.23")
                 .build())
             .withMessage("test transfer")
             .build();
