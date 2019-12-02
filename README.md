@@ -29,8 +29,12 @@ The API specification is [documented in Open API 3.0 Specification format](./spe
 - No currency conversion is performed. Both accounts must use the same currency.
   If currency conversion is required, it should be done by the client.
 - All API amount values have 2 digits after the decimal point, representing the cents.
-- The only reason for transfer rejection in this service if the sender account doesn't have
-  enough funds.
+- Any errors that can be solved on the client's side (validation, wrong currency, non-existent account id etc.)
+  will be reported back as error responses with 4XX status codes. No transfer will be created.
+- A non-error issue i.e. a normal case that doesn't result in transferring money but cannot be solved on the client's side, 
+  will result in a 200 response. A transfer will be saved in the service but will be marked as rejected
+  which will be indicated in the response body.
+  The only reason for transfer rejection in this service if the sender account doesn't have enough funds.
 - Transfer size should be positive and smaller than 10 trillion (9 999 999 999 999.99).
 - The maximum account balance is not defined.
 
@@ -58,8 +62,8 @@ The API specification is [documented in Open API 3.0 Specification format](./spe
   make adding it a straightforward task.
   
 - A testing controller is added to create AccountFunds (a representation of account that holds balance).
-  While it's used to create an account funds entry in the app, the endpoints it exposes are not part of the 'official'
-  application API. Personally for me, a more preferred way of creating those entries would be through asynchronous
+  While it's used to create an account funds entry in the service, the endpoints it exposes are not part of the 'official'
+  service API. Personally for me, a more preferred way of creating those entries would be through asynchronous
   messaging such as handling an `AccountCreated` event.
   
 ## Requirements for running the application
