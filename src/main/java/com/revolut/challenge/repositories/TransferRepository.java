@@ -70,8 +70,8 @@ public class TransferRepository {
                 .createdAt(createdAt)
                 .build();
         } catch (SQLIntegrityConstraintViolationException e) {
-            //TODO: improve to make sure it's the ID conflict that caused the exception
-            throw new DuplicateOperationIdException(transfer.getOperationId());
+            //can be improved to make sure it's the ID conflict that caused the exception (vendor-specific)
+            throw new DuplicateOperationIdException(transfer.getOperationId(), e);
         } catch (SQLException e) {
             throw new DataAccessException("Error executing SQL statement: " + e.getMessage(), e);
         }

@@ -7,7 +7,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class DuplicateOperationIdException extends DataAccessException {
 
-    public DuplicateOperationIdException(UUID operationId) {
-        super("A transfer with operation ID " + operationId + " already exists");
+    public DuplicateOperationIdException(UUID operationId, Throwable cause) {
+        super("A transfer with operation ID " + operationId + " already exists", cause);
     }
 }

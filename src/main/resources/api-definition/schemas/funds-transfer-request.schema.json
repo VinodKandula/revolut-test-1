@@ -50,9 +50,9 @@
       ],
       "properties": {
         "value": {
-          "description": "Non-negative amount of money in the provided currency, with cents after the decimal point",
+          "description": "Positive amount of money in the provided currency, with cents after the decimal point",
           "type": "string",
-          "pattern": "^\\d+\\.\\d\\d$",
+          "pattern": "^\\d{1,13}\\.\\d\\d$",
           "examples": [
             "0.01",
             "1.00",

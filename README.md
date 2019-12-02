@@ -1,5 +1,10 @@
 # Revolut Backend Test
 
+The service allows to perform transfers between two accounts in the bank. It stores
+transfer history separately from the balance.
+The API specification is [documented in Open API 3.0 Specification format](./src/main/resources/api-definition/account-funds-service.oas3.yml)
+ 
+
 ## Assumptions made
 
 - Account identification (such as by email or by IBAN etc.) is performed by the client of the API. 
@@ -8,9 +13,13 @@
   it a private or business account) etc. are supposed to be stored in other services
 - The service's scope is limited to transferring from one account to another within the same service.
   External transfers are done in a separate service that integrates with a payment system such as SWIFT.
+- Some important functions, such as transfer history, transfer audit, overdraft fee calculation etc. 
+  are also assumed to be implemented in separate services. A possible way of sharing the transfers is using 
+  change data capture (CDC) - based event sourcing.
 - The API is a generic transfer API that can operate on any accounts in the bank.
   A frontent-specific API (web, mobile, ...) will use this API and will expose its own set of endpoints
   to restrict a particular user from accessing other users' accounts.
+- additional means of validation (such as daily transfer limit) are client's responsibility.
 - A client of the API should be able to perform retries and the API should process retries idempotently
   For that `operationId` request field is introduced. Any repeated requests with the same `operationId`
   will result in the same response as the first request.
@@ -35,10 +44,8 @@
 - Test framework: JUnit 5
 
 ## Implementation notes
-- This project follows API-first approach:
-  - The API is [defined in Open API 3.0 Specification format](./src/main/resources/api-definition/account-funds-service.oas3.yml)
-  - The API requests and responses are [defined as a set of JSON schema files](./src/main/resources/api-definition/schemas)
-  - `jsonschema2pojo` plugin transforms the JSON schemas into Java classes
+- This project follows API-first approach:  API requests and responses are [defined as a set of JSON schema files](./src/main/resources/api-definition/schemas).
+  `jsonschema2pojo` plugin transforms the JSON schemas into Java classes
   
 - In the most cases it's assumed that validation is performed by the Java validation API
   and/or not necessary due to the use of JSR-305 annotations
@@ -46,6 +53,9 @@
   
 - Some of repository methods are implemented for test purposes only.
   They are marked as such by the use of comments and aren't explicitly covered by tests.
+
+- Overdraft support is not implemented as a feature but the data model and the code base
+  make adding it a straightforward task.
 
 ## Requirements for running the application
 

@@ -5,12 +5,12 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.revolut.challenge.service.model.Transfer;
 import com.revolut.challenge.service.model.TransferStatus;
+import io.micronaut.data.exceptions.DataAccessException;
 import io.micronaut.test.annotation.MicronautTest;
 import java.math.BigDecimal;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.assertj.core.data.TemporalUnitLessThanOffset;
@@ -21,6 +21,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @MicronautTest(transactional = false)
 class TransferRepositoryTest {
+
+    private static final BigDecimal MAXIMUM_TRANSFER = new BigDecimal("9999999999999.99");
 
     private final UUID senderAccountId = UUID.randomUUID();
     private final UUID recipientAccountId = UUID.randomUUID();
@@ -56,7 +58,7 @@ class TransferRepositoryTest {
             BigDecimal.ONE,
             BigDecimal.TEN,
             new BigDecimal("0.01"),
-            buildMaximumTransferAmount()
+            MAXIMUM_TRANSFER
         );
     }
 
@@ -106,11 +108,19 @@ class TransferRepositoryTest {
     void shouldFailToPersistTransferWithSameOperationId() {
         transferRepository.save(buildTransfer());
         assertThatExceptionOfType(DuplicateOperationIdException.class)
-            .isThrownBy(() -> transferRepository.save(buildTransfer()));
+            .isThrownBy(() -> transferRepository.save(buildTransfer()))
+            .withCauseInstanceOf(SQLIntegrityConstraintViolationException.class);
+    }
+
+    @Test
+    void shouldFailToPersistAmountGreaterThanMaximum() {
+        assertThatExceptionOfType(DataAccessException.class)
+            .isThrownBy(() -> transferRepository.save(
+                buildTransfer(MAXIMUM_TRANSFER.add(new BigDecimal("0.01")))));
     }
 
     private Transfer buildTransfer() {
-        return buildTransfer(BigDecimal.TEN.setScale(4));
+        return buildTransfer(BigDecimal.TEN.setScale(2));
     }
 
     private Transfer buildTransfer(BigDecimal amount) {
@@ -122,10 +132,5 @@ class TransferRepositoryTest {
             .amount(amount)
             .status(TransferStatus.ACCEPTED)
             .build();
-    }
-
-    private static BigDecimal buildMaximumTransferAmount() {
-        return new BigDecimal(IntStream.range(0, 13).mapToObj(i -> "9")
-            .collect(Collectors.joining("", "", ".99")));
     }
 }

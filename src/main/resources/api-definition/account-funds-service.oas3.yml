@@ -1,6 +1,7 @@
+#Can be improved by providing  error specifications and setting up controller code generation
 openapi: 3.0.0
 info:
-  title: The API of the faccount funds application
+  title: The API of the account funds application
   version: 1.0.0
 paths:
   /api/v1/transfers:

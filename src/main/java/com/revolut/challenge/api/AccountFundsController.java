@@ -14,9 +14,9 @@ import javax.validation.Valid;
 
 @Controller("/api/v1/account-funds")
 @Validated
-public class AccountFundsTestController {
+public class AccountFundsController {
 
-    public AccountFundsTestController(
+    public AccountFundsController(
         AccountFundsRepository accountFundsRepository) {
         this.accountFundsRepository = accountFundsRepository;
     }
@@ -30,11 +30,7 @@ public class AccountFundsTestController {
 
     @Get(value = "/{accountId}", produces = MediaType.APPLICATION_JSON)
     public AccountFunds getAccountFunds(@Valid @RequestAttribute UUID accountId) {
-        var accountFunds = accountFundsRepository.getById(accountId);
-        return accountFunds
-            .toBuilder()
-            .balance(accountFunds.getBalance().setScale(2))
-            .build();
+        return accountFundsRepository.getById(accountId);
     }
 
 }

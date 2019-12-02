@@ -31,7 +31,17 @@ public class TransferService {
             return transactionHelper.getFromTransaction(
                 () -> transferFunds(senderAccount, recipientAccount, transfer));
         } catch (DuplicateOperationIdException e) {
-            return transferRepository.getByOperationId(transfer.getOperationId()); //TODO: return 409 if not equal
+            var persistedTransfer = transferRepository.getByOperationId(transfer.getOperationId());
+            if (persistedTransfer.toBuilder()
+                .id(null)
+                .createdAt(null)
+                .status(TransferStatus.ACCEPTED)
+                .build()
+                .equals(transfer)) {
+                return persistedTransfer;
+            } else {
+                throw new ConflictingTransferException(transfer.getOperationId());
+            }
         }
     }
 

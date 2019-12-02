@@ -1,4 +1,4 @@
-package com.revolut.challenge.api;
+package com.revolut.challenge;
 
 import static com.revolut.challenge.TestConstants.INTEGRATION_TAG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,25 +35,28 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 @MicronautTest
 @Tag(INTEGRATION_TAG)
-class TransferControllerIntegrationTest {
+class AccountFundsApplicationSpecificationTest {
+
+    private static final String MAXIMUM_TRANSFER = "9999999999999.99";
 
     @Inject
     @Client("/api/v1")
     private RxHttpClient client;
 
     @ParameterizedTest
-    @ValueSource(strings = {"0.01", "1.00", "5.90", "9.99", "10.00"})
+    @ValueSource(strings = {"0.01", "1.00", "5.90", "9.99", "10.00", MAXIMUM_TRANSFER})
     @DisplayName("Should successfully transfer money between accounts")
     void shouldTransferFundsBetweenAccounts(String amount) {
         //GIVEN a recipient account with 0 EUR balance
         var recipientAccountId = UUID.randomUUID();
         createAccount(recipientAccountId, "0.0");
-        //AND a sender account with 10 EUR balance
+        //AND a sender account with 10000000000000.00 EUR balance
         var senderAccountId = UUID.randomUUID();
-        createAccount(senderAccountId, "10.0");
-        //AND a 4.81 EUR transfer between them
+        var senderAccountBalance = "10000000000000.00";
+        createAccount(senderAccountId, senderAccountBalance);
+        //AND a transfer between them
         var operationId = UUID.randomUUID();
-        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+        var transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
             operationId, amount);
 
         //WHEN the transfer is performed
@@ -70,7 +73,7 @@ class TransferControllerIntegrationTest {
         assertAccountBalance(recipientAccountId, amount);
         //AND the sender account has 10 - amount EUR left
         assertAccountBalance(senderAccountId,
-            BigDecimal.TEN.subtract(new BigDecimal(amount)).toPlainString());
+            new BigDecimal(senderAccountBalance).subtract(new BigDecimal(amount)).toPlainString());
     }
 
     @Test
@@ -84,7 +87,7 @@ class TransferControllerIntegrationTest {
         createAccount(senderAccountId, "10.0");
         //AND a 4.81 EUR transfer between them
         var operationId = UUID.randomUUID();
-        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+        var transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
             operationId, "4.81");
 
         //WHEN the transfer is performed twice
@@ -97,6 +100,36 @@ class TransferControllerIntegrationTest {
         assertThat(result.getTransferNumber()).isEqualTo(originalResult.getTransferNumber());
         //AND the createdAt should not change
         assertThat(result.getCreatedAt()).isEqualTo(originalResult.getCreatedAt());
+        //AND the recipient account has 6 4.81 EUR balance
+        assertAccountBalance(recipientAccountId, "4.81");
+        //AND the sender account has 5.19 EUR balance left
+        assertAccountBalance(senderAccountId, "5.19");
+    }
+
+    @Test
+    @DisplayName("A different transfer with the same operation ID should result in status code 409")
+    void shouldReturnErrorIfDifferentTransferHasSameOperationId() {
+        //GIVEN a recipient account with 0 EUR balance
+        var recipientAccountId = UUID.randomUUID();
+        createAccount(recipientAccountId, "0.0");
+        //AND a sender account with 10 EUR balance
+        var senderAccountId = UUID.randomUUID();
+        createAccount(senderAccountId, "10.0");
+        //AND a 4.81 EUR transfer between them
+        var operationId = UUID.randomUUID();
+        var transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+            operationId, "4.81");
+
+        //WHEN the another transfer is performed with the same operationId but different amount
+        doTransfer(transferRequest);
+        var anotherRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+            operationId, "5.00");
+        var result = failTransfer(anotherRequest);
+
+        //THEN a not found error is returned
+        assertThat(result.getStatus().getCode()).isEqualTo(HttpStatus.CONFLICT.getCode());
+
+        //TODO: check body
         //AND the recipient account has 6 4.81 EUR balance
         assertAccountBalance(recipientAccountId, "4.81");
         //AND the sender account has 5.19 EUR balance left
@@ -116,7 +149,7 @@ class TransferControllerIntegrationTest {
 
         //AND a 4.81 EUR transfer between them is attempted
         var operationId = UUID.randomUUID();
-        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+        var transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
             operationId, "4.81");
 
         //WHEN the transfer is performed
@@ -158,7 +191,7 @@ class TransferControllerIntegrationTest {
 
         //AND a 4.81 EUR transfer between them is attempted
         var operationId = UUID.randomUUID();
-        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+        var transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
             operationId, "4.81");
 
         //WHEN the transfer is performed
@@ -175,7 +208,7 @@ class TransferControllerIntegrationTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"-999.99", "-1.00", "-0.0001", "0.00", "0.0001", "0.001", "0.0099",
-        "9.9999", "9.999", "9"})
+        "9.9999", "9.999", "9", "10000000000000.00"})
     @DisplayName("Should return 400 if transfer amount is invalid")
     void shouldReturnErrorIfAmountValueIsInvalid(
         String amount
@@ -184,13 +217,13 @@ class TransferControllerIntegrationTest {
         //AND a recipient account with 0 EUR balance
         var recipientAccountId = UUID.randomUUID();
         createAccount(recipientAccountId, "0.0");
-        //AND a sender account with 10 EUR balance
+        //AND a sender account with 10000000000000.00 EUR balance
         var senderAccountId = UUID.randomUUID();
-        createAccount(senderAccountId, "10.0");
+        createAccount(senderAccountId, "10000000000000.00");
 
         //AND a 4.81 EUR transfer between them is attempted
         var operationId = UUID.randomUUID();
-        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+        var transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
             operationId, amount);
 
         //WHEN the transfer is performed
@@ -202,7 +235,7 @@ class TransferControllerIntegrationTest {
         //TODO: check body
         //AND the account balances are unchanged
         assertAccountBalance(recipientAccountId, "0.00");
-        assertAccountBalance(senderAccountId, "10.00");
+        assertAccountBalance(senderAccountId, "10000000000000.00");
     }
 
     //WHERE

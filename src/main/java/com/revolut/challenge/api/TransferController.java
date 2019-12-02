@@ -36,7 +36,7 @@ public class TransferController {
             transferService.processTransfer(transfer));
     }
 
-    private void validateAmount(@NonNull BigDecimal amount) { //TODO: validate max amount
+    private void validateAmount(@NonNull BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) > 0) {
             return;
         }

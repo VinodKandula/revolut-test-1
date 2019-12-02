@@ -32,8 +32,8 @@ class AccountFundsRepositoryTest {
         assertThat(accountFundsRepository
             .transferFunds(senderAccountId, recipientAccountId, new BigDecimal("100.00"))
         ).isTrue();
-        assertThat(accountBalance(senderAccountId)).isEqualTo("0.0000");
-        assertThat(accountBalance(recipientAccountId)).isEqualTo("100.0000");
+        assertThat(accountBalance(senderAccountId)).isEqualTo("0.00");
+        assertThat(accountBalance(recipientAccountId)).isEqualTo("100.00");
     }
 
     @Test
@@ -44,7 +44,7 @@ class AccountFundsRepositoryTest {
                 accountFundsRepository
                     .transferFunds(senderAccountId, recipientAccountId, new BigDecimal("10.0")))
             .withMessageContaining(senderAccountId.toString());
-        assertThat(accountBalance(recipientAccountId)).isEqualTo("100.0000");
+        assertThat(accountBalance(recipientAccountId)).isEqualTo("100.00");
     }
 
     @Test
@@ -55,7 +55,7 @@ class AccountFundsRepositoryTest {
                 accountFundsRepository
                     .transferFunds(senderAccountId, recipientAccountId, new BigDecimal("10.0")))
             .withMessageContaining(recipientAccountId.toString());
-        assertThat(accountBalance(senderAccountId)).isEqualTo("100.0000");
+        assertThat(accountBalance(senderAccountId)).isEqualTo("100.00");
     }
 
     @Test
@@ -65,8 +65,8 @@ class AccountFundsRepositoryTest {
         assertThat(accountFundsRepository
             .transferFunds(senderAccountId, recipientAccountId, new BigDecimal("10.0"))
         ).isFalse();
-        assertThat(accountBalance(senderAccountId)).isEqualTo("9.9900");
-        assertThat(accountBalance(recipientAccountId)).isEqualTo("0.0000");
+        assertThat(accountBalance(senderAccountId)).isEqualTo("9.99");
+        assertThat(accountBalance(recipientAccountId)).isEqualTo("0.00");
     }
 
     @Test
