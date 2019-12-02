@@ -41,5 +41,15 @@ paths:
               example: |
                 {
                   "status": "OK",
-                  "transferNumber": "42"
+                  "transferNumber": "1",
+                  "createdAt": "2019-12-01T13:29:20.561374"
                 }
+  /health:
+    200:
+      description: Health check
+      content:
+        application/json:
+          example: |
+            {
+              "status": "UP"
+            }

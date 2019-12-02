@@ -23,11 +23,13 @@ public class AccountFundsController {
 
     private final AccountFundsRepository accountFundsRepository;
 
+    //for testing
     @Post(consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
     public AccountFunds createAccountFunds(@Valid @Body AccountFunds accountFunds) {
         return accountFundsRepository.save(accountFunds);
     }
 
+    //for testing
     @Get(value = "/{accountId}", produces = MediaType.APPLICATION_JSON)
     public AccountFunds getAccountFunds(@Valid @RequestAttribute UUID accountId) {
         return accountFundsRepository.getById(accountId);

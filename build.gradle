@@ -144,7 +144,7 @@ jacocoTestCoverageVerification {
 
 jsonSchema2Pojo {
     includeJsr303Annotations = true
-    source = files("$rootDir/src/main/resources/api-definition/schemas")
+    source = files("$rootDir/specs/schemas")
     dateType = "java.time.LocalDate"
     dateTimeType = "java.time.LocalDateTime"
     generateBuilders = true

@@ -129,7 +129,7 @@ class AccountFundsApplicationSpecificationTest {
         //THEN a not found error is returned
         assertThat(result.getStatus().getCode()).isEqualTo(HttpStatus.CONFLICT.getCode());
 
-        //TODO: check body
+        //TODO: find out how to get a nonnull body and check it
         //AND the recipient account has 6 4.81 EUR balance
         assertAccountBalance(recipientAccountId, "4.81");
         //AND the sender account has 5.19 EUR balance left
@@ -158,7 +158,7 @@ class AccountFundsApplicationSpecificationTest {
         //THEN a not found error is returned
         assertThat(result.getStatus().getCode()).isEqualTo(HttpStatus.NOT_FOUND.getCode());
 
-        //TODO: check body
+        //TODO: find out how to get a nonnull body and check it
         //AND the account balance is unchanged
         assertAccountBalance(existingAccountId, "1000.00");
     }
@@ -200,7 +200,7 @@ class AccountFundsApplicationSpecificationTest {
         //THEN a bad request error is returned
         assertThat(result.getStatus().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.getCode());
 
-        //TODO: check body
+        //TODO: find out how to get a nonnull body and check it
         //AND the account balances are unchanged
         assertAccountBalance(recipientAccountId, "0.00");
         assertAccountBalance(senderAccountId, "10.00");
@@ -232,7 +232,7 @@ class AccountFundsApplicationSpecificationTest {
         //THEN a bad request error is returned
         assertThat(result.getStatus().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.getCode());
 
-        //TODO: check body
+        //TODO: find out how to get a nonnull body and check it
         //AND the account balances are unchanged
         assertAccountBalance(recipientAccountId, "0.00");
         assertAccountBalance(senderAccountId, "10000000000000.00");

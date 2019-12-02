@@ -2,7 +2,7 @@
 
 The service allows to perform transfers between two accounts in the bank. It stores
 transfer history separately from the balance.
-The API specification is [documented in Open API 3.0 Specification format](./src/main/resources/api-definition/account-funds-service.oas3.yml)
+The API specification is [documented in Open API 3.0 Specification format](./specs/account-funds-service.oas3.yml)
  
 
 ## Assumptions made
@@ -44,7 +44,7 @@ The API specification is [documented in Open API 3.0 Specification format](./src
 - Test framework: JUnit 5
 
 ## Implementation notes
-- This project follows API-first approach:  API requests and responses are [defined as a set of JSON schema files](./src/main/resources/api-definition/schemas).
+- This project follows API-first approach:  API requests and responses are [defined as a set of JSON schema files](./specs/schemas).
   `jsonschema2pojo` plugin transforms the JSON schemas into Java classes
   
 - In the most cases it's assumed that validation is performed by the Java validation API
@@ -56,7 +56,12 @@ The API specification is [documented in Open API 3.0 Specification format](./src
 
 - Overdraft support is not implemented as a feature but the data model and the code base
   make adding it a straightforward task.
-
+  
+- A testing controller is added to create AccountFunds (a representation of account that holds balance).
+  While it's used to create an account funds entry in the app, the endpoints it exposes are not part of the 'official'
+  application API. Personally for me, a more preferred way of creating those entries would be through asynchronous
+  messaging such as handling an `AccountCreated` event.
+  
 ## Requirements for running the application
 
 Gradle `5.X.X` and `JDK 11` 
@@ -88,6 +93,30 @@ docker run -p 8080:8080 revolut-test
 
 The application exposes the API on port `8080`.
 An example of using `curl` for invoking the API:
+
+### to create the initial balance entries
+This is not a part of the specification but is necessary for testing this implementation.
+```bash
+curl --request POST \
+  --url http://localhost:8080/api/v1/account-funds \
+  --header 'content-type: application/json' \
+  --data '{
+	"accountId": "a27fa283-f638-49d1-b150-8adf065c80e2",
+	"balance": "0.00",
+	"currency": "EUR"
+}'
+
+curl --request POST \
+  --url http://localhost:8080/api/v1/account-funds \
+  --header 'content-type: application/json' \
+  --data '{
+	"accountId": "48e3d142-e5d6-442a-bf61-42c3e5673700",
+	"balance": "100.00",
+	"currency": "EUR"
+}'
+```
+
+### to perform a transfer
 ```bash
 curl --request POST \
   --url http://localhost:8080/api/v1/transfer \
@@ -108,4 +137,14 @@ curl --request POST \
 	},
 	"message": "Test transfer"
 }'
+```
+
+### to check updated balance
+
+```bash
+curl --request GET \
+  --url http://localhost:8080/api/v1/account-funds/a27fa283-f638-49d1-b150-8adf065c80e2
+
+curl --request GET \
+  --url http://localhost:8080/api/v1/account-funds/48e3d142-e5d6-442a-bf61-42c3e5673700
 ```
