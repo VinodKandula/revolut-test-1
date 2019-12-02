@@ -44,6 +44,39 @@ paths:
                   "transferNumber": "1",
                   "createdAt": "2019-12-01T13:29:20.561374"
                 }
+        400:
+          description: Invalid request data error
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: ./schemas/error-response.schema.json
+              example: |
+                {
+                  "message": "transferRequest.amount.value: must match \"^\\d{1,13}\\.\\d\\d$\"",
+                }
+        404:
+          description: Not found error
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: ./schemas/error-response.schema.json
+              example: |
+                {
+                  "message": "Account funds for account 48e3d142-e5d6-442a-bf61-42c3e5673700 weren't found"
+                }
+        409:
+          description: Another transfer with the same operationId exists error
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: ./schemas/error-response.schema.json
+              example: |
+                {
+                  "message": "A transfer with operation ID b19d837f-2b85-4ec6-8c57-3a83cae34139 already exists"
+                }
   /health:
     200:
       description: Health check

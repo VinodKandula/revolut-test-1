@@ -10,7 +10,7 @@
   "required": [
     "message"
   ],
-  "additionalProperties": false,
+  "additionalProperties": true,
   "properties": {
     "message": {
       "description": "The error message",
