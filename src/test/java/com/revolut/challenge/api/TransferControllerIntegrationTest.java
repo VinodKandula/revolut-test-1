@@ -20,10 +20,11 @@ import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.annotation.MicronautTest;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.stream.Stream;
 import javax.inject.Inject;
+import org.assertj.core.data.TemporalUnitLessThanOffset;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -63,7 +64,8 @@ class TransferControllerIntegrationTest {
         //AND a transfer number should be assigned to it
         assertThat(result.getTransferNumber()).matches("^\\d+$");
         //AND the createdAt field should be populated
-        assertThat(result.getCreatedAt()).isBeforeOrEqualTo(LocalDateTime.now());
+        assertThat(result.getCreatedAt()).isCloseToUtcNow(new TemporalUnitLessThanOffset(1L,
+            ChronoUnit.SECONDS));
         //AND the recipient account has the balance equal to the amount
         assertAccountBalance(recipientAccountId, amount);
         //AND the sender account has 10 - amount EUR left
@@ -223,7 +225,7 @@ class TransferControllerIntegrationTest {
         createAccount(senderAccountId, "1.0");
         //AND a 4.81 EUR transfer between them
         var operationId = UUID.randomUUID();
-        TransferRequest transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
+        var transferRequest = buildTransferRequest(senderAccountId, recipientAccountId,
             operationId, "4.81");
 
         //WHEN the transfer is performed
@@ -234,7 +236,8 @@ class TransferControllerIntegrationTest {
         //AND a transfer number should be assigned to it
         assertThat(result.getTransferNumber()).matches("^\\d+$");
         //AND the createdAt field should be populated
-        assertThat(result.getCreatedAt()).isBeforeOrEqualTo(LocalDateTime.now());
+        assertThat(result.getCreatedAt()).isCloseToUtcNow(new TemporalUnitLessThanOffset(1L,
+            ChronoUnit.SECONDS));
         //AND the recipient account still has 100.0 EUR balance
         assertAccountBalance(recipientAccountId, "100.00");
         //AND the sender account has 1 EUR balance left

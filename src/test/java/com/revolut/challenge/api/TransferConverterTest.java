@@ -12,6 +12,7 @@ import com.revolut.challenge.service.model.Transfer;
 import com.revolut.challenge.service.model.TransferStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -70,7 +71,7 @@ class TransferConverterTest {
     void shouldConvertCompletedTransferToTransferResponse(TransferStatus transferStatus,
         com.revolut.challenge.api.model.TransferStatus expectedApiStatus) {
         //GIVEN a valid Transfer with a final status
-        var createdAt = LocalDateTime.now();
+        var createdAt = LocalDateTime.now(ZoneId.of("UTC"));
         var transfer = Transfer.builder()
             .id(16L)
             .createdAt(createdAt)

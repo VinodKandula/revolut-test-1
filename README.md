@@ -22,20 +22,30 @@
 - All API amount values have 2 digits after the decimal point, representing the cents.
 - The only reason for transfer rejection in this service if the sender account doesn't have
   enough funds.
+- Transfer size should be positive and smaller than 10 trillion (9 999 999 999 999.99).
+- The maximum account balance is not defined.
 
 ## Chosen technologies
 
 - Programming language: Java 11
 - Build tool: Gradle 5
-- Web framework: Micronaut (+ Micronaut Data JDBC)
-- Test framework: JUnit 5
+- Web framework: Micronaut
 - In-memory database: H2
+- Persistence: JDBC
+- Test framework: JUnit 5
 
 ## Implementation notes
 - This project follows API-first approach:
-  - The API if [defined in Open API 3.0 Specification format](./src/main/resources/api-definition/account-funds-service.oas3.yml)
-  - the API requests and responses are [defined as a set of JSON schema files](./src/main/resources/api-definition/schemas)
+  - The API is [defined in Open API 3.0 Specification format](./src/main/resources/api-definition/account-funds-service.oas3.yml)
+  - The API requests and responses are [defined as a set of JSON schema files](./src/main/resources/api-definition/schemas)
   - `jsonschema2pojo` plugin transforms the JSON schemas into Java classes
+  
+- In the most cases it's assumed that validation is performed by the Java validation API
+  and/or not necessary due to the use of JSR-305 annotations
+  and therefore no additional argument validation is needed. Such cases aren't tested.
+  
+- Some of repository methods are implemented for test purposes only.
+  They are marked as such by the use of comments and aren't explicitly covered by tests.
 
 ## Requirements for running the application
 

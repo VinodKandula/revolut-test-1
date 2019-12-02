@@ -2,7 +2,7 @@ package com.revolut.challenge.api.exception.handlers;
 
 import com.revolut.challenge.api.model.ErrorResponse;
 import com.revolut.challenge.api.model.ErrorResponse.ErrorResponseBuilder;
-import com.revolut.challenge.service.AccountFundsNotFoundException;
+import com.revolut.challenge.repositories.AccountFundsNotFoundException;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Produces;

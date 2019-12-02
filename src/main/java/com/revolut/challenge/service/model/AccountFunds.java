@@ -1,9 +1,10 @@
 package com.revolut.challenge.service.model;
 
-import io.micronaut.data.annotation.Id;
-import io.micronaut.data.annotation.MappedEntity;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.math.BigDecimal;
 import java.util.UUID;
+import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import lombok.Builder;
@@ -12,10 +13,10 @@ import lombok.NonNull;
 
 @Builder(toBuilder = true)
 @Data
-@MappedEntity
+@Immutable
+@JsonDeserialize(builder = AccountFunds.AccountFundsBuilder.class)
 public class AccountFunds {
 
-    @Id
     @NonNull
     private final UUID accountId;
     @NotNull
@@ -24,14 +25,8 @@ public class AccountFunds {
     @Size(min = 3, max = 3)
     private final String currency;
 
-    //non-Lombok public constructor is used because Lombok assigns arg names that Micronaut Data rejects
-    public AccountFunds(
-        UUID accountId,
-        BigDecimal balance,
-        String currency
-    ) {
-        this.accountId = accountId;
-        this.balance = balance;
-        this.currency = currency;
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class AccountFundsBuilder {
+
     }
 }
